@@ -192,3 +192,12 @@ for cn=1:noise_ite
 end
 
 println(E0)
+
+
+jld_filenm="Square_dirac_M"*string(M)*".jld";
+save(jld_filenm, "W",W,"E0",E0);
+
+
+# jld_filenm="Square_dirac_M"*string(M)*".jld";
+# W=load(jld_filenm)["W"];
+# E0=load(jld_filenm)["E0"];
