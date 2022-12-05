@@ -25,7 +25,7 @@ t=1;
 #PEPS parameters
 filling=1;
 P=2;#number of physical fermion modes every unit-cell
-M=3;#number of virtual modes per bond
+M=1;#number of virtual modes per bond
 #each site has 4M virtual fermion modes
 Q=2*M+filling;#total number of physical and virtual fermions on a site; 
 #size of W matrix: (P+4M, Q)
