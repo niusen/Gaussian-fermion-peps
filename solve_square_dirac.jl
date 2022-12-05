@@ -11,10 +11,10 @@ include("cost_function.jl")
 ls_max=20;
 alpha0=2;
 ls_ratio=2/3;
-noise_ite=1;
+noise_ite=5;
 
 #Hamiltonian parameters
-Random.seed!(666)
+Random.seed!(555)
 Lx=16;
 Ly=16;
 N=Lx*Ly;
@@ -25,7 +25,7 @@ t=1;
 #PEPS parameters
 filling=1;
 P=2;#number of physical fermion modes every unit-cell
-M=4;#number of virtual modes per bond
+M=3;#number of virtual modes per bond
 #each site has 4M virtual fermion modes
 Q=2*M+filling;#total number of physical and virtual fermions on a site; 
 #size of W matrix: (P+4M, Q)
@@ -140,6 +140,20 @@ noise=0;
 W,E0=line_search(W,noise);
 
 for cn=1:noise_ite
+    noise=0.6;
+    W_updated,E0_updated=line_search(W,noise);
+    if E0_updated<E0
+        E0=E0_updated;
+        W=W_updated;
+    end
+
+    noise=0.3;
+    W_updated,E0_updated=line_search(W,noise);
+    if E0_updated<E0
+        E0=E0_updated;
+        W=W_updated;
+    end
+
     noise=0.1;
     W_updated,E0_updated=line_search(W,noise);
     if E0_updated<E0
