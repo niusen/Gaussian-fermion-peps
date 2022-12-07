@@ -11,8 +11,8 @@ include("cost_function.jl")
 
 #Hamiltonian parameters
 Random.seed!(555)
-Lx=80;
-Ly=80;
+Lx=16;
+Ly=16;
 N=Lx*Ly;
 boundary_x=1;#1 or -1
 boundary_y=1;#1 or -1
