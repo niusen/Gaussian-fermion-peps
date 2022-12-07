@@ -38,7 +38,6 @@ end
 
 function Qi_Wu_Zhang(Mz,Lx,Ly,P,M,kxs,kys,W)
     N=Lx*Ly;
-    #t=1;
 
     C_T=2*W*W'-Matrix(I, P+4*M, P+4*M);
     A=C_T[1:P,1:P];
@@ -51,7 +50,7 @@ function Qi_Wu_Zhang(Mz,Lx,Ly,P,M,kxs,kys,W)
     sigmaz=[1 0;0 -1];
 
     E=0;
-    for ca=1:Int(Lx/2)
+    for ca=1:Lx
         for cb=1:Ly
             kx=kxs[ca];
             ky=kys[cb];
