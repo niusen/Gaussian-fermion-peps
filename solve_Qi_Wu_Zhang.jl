@@ -8,41 +8,49 @@ cd("D:\\My Documents\\Code\\Julia_codes\\Tensor network\\Gaussian-fermion-peps")
 
 include("cost_function.jl")
 
+
+#Hamiltonian parameters
+Random.seed!(555)
+Lx=80;
+Ly=80;
+N=Lx*Ly;
+boundary_x=1;#1 or -1
+boundary_y=1;#1 or -1
+Mz=1;
+
+#PEPS parameters
+filling=1;
+P=2;#number of physical fermion modes every unit-cell
+M=1;#number of virtual modes per bond
+#each site has 4M virtual fermion modes
+Q=2*M+filling;#total number of physical and virtual fermions on a site; 
+#size of W matrix: (P+4M, Q)
+init_state="QWZ_M"*string(M)*".jld";#initialize: nothing
+#init_state=nothing
+
 #optimization parameters
 ls_max=20;
 alpha0=2;
 ls_ratio=2/3;
 noise_ite=5;
 
-#Hamiltonian parameters
-Random.seed!(555)
-Lx=16;
-Ly=16;
-N=Lx*Ly;
-boundary_x=1;#1 or -1
-boundary_y=1;#1 or -1
-Mz=1;
-
-
-#PEPS parameters
-filling=1;
-P=2;#number of physical fermion modes every unit-cell
-M=5;#number of virtual modes per bond
-#each site has 4M virtual fermion modes
-Q=2*M+filling;#total number of physical and virtual fermions on a site; 
-#size of W matrix: (P+4M, Q)
-
 function initial_W(P,M,Q)
     W=rand(P+4*M,P+4*M)+im*rand(P+4*M,P+4*M);
     U,_,_=svd(W);
     W=U[:,1:Q];
 end
-W=initial_W(P,M,Q);
+
+if init_state==nothing 
+    W=initial_W(P,M,Q);
+else
+    W=load(init_state)["W"];
+    E0=load(init_state)["E0"];
+end
 
 if boundary_x==1
-    kxs=Float64.(1:1:Lx/2)*(2*pi)/(Lx/2);
+    kxs=Float64.(1:1:Lx)*(2*pi)/Lx;
 elseif boundary_x==-1
-    kxs=Float64.(1:1:Lx/2)*(2*pi)/(Lx/2).+pi/(Lx/2);
+    kxs=Float64.(1:1:Lx)*(2*pi)/Lx.+pi/Lx;
 end
 if boundary_y==1
     kys=Float64.(1:1:Ly)*(2*pi)/Ly;
@@ -50,11 +58,11 @@ elseif boundary_y==-1
     kys=Float64.(1:1:Ly)*(2*pi)/Ly.+pi/Ly;
 end
 
-kxset=zeros(Int(Lx/2),Ly);
-kyset=zeros(Int(Lx/2),Ly);
-for ca=1:Lx/2
+kxset=zeros(Lx,Ly);
+kyset=zeros(Lx,Ly);
+for ca=1:Lx
     for cb=1:Ly
-        ca=Int(ca);
+        ca=ca;
         kxset[ca,cb]=kxs[ca];
         kyset[ca,cb]=kys[cb];
         kx=kxs[ca];
@@ -141,6 +149,7 @@ end
 noise=0;
 W,E0=line_search(W,noise);
 
+
 for cn=1:noise_ite
     noise=0.6;
     W_updated,E0_updated=line_search(W,noise);
@@ -205,6 +214,4 @@ matwrite(mat_filenm, Dict(
     "E0" => E0
 ); compress = false)
 
-# jld_filenm="QWZ_M"*string(M)*".jld";
-# W=load(jld_filenm)["W"];
-# E0=load(jld_filenm)["E0"];
+
