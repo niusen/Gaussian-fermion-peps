@@ -21,18 +21,19 @@ Mz=1;
 #PEPS parameters
 filling=1;
 P=2;#number of physical fermion modes every unit-cell
-M=1;#number of virtual modes per bond
+M=2;#number of virtual modes per bond
+M_initial=1;#number of virtual modes in initial state
 #each site has 4M virtual fermion modes
 Q=2*M+filling;#total number of physical and virtual fermions on a site; 
 #size of W matrix: (P+4M, Q)
-init_state="QWZ_M"*string(M)*".jld";#initialize: nothing
+init_state="QWZ_M"*string(M_initial)*".jld";#initialize: nothing
 #init_state=nothing
 
 #optimization parameters
 ls_max=20;
 alpha0=2;
 ls_ratio=2/3;
-noise_ite=5;
+noise_ite=1;
 
 function initial_W(P,M,Q)
     W=rand(P+4*M,P+4*M)+im*rand(P+4*M,P+4*M);
@@ -43,8 +44,22 @@ end
 if init_state==nothing 
     W=initial_W(P,M,Q);
 else
-    W=load(init_state)["W"];
-    E0=load(init_state)["E0"];
+    if M_initial==M
+        W=load(init_state)["W"];
+        E0=load(init_state)["E0"];
+    elseif M_initial<M
+        W_init=load(init_state)["W"];
+        E0=load(init_state)["E0"];
+        Q_initial=2*M_initial+filling;
+        W=[W_init[1:P+M_initial,:];zeros(M-M_initial,Q_initial);W_init[P+M_initial+1:P+2*M_initial,:];zeros(M-M_initial,Q_initial);W_init[P+2*M_initial+1:P+3*M_initial,:];zeros(M-M_initial,Q_initial);W_init[P+3*M_initial+1:P+4*M_initial,:];zeros(M-M_initial,Q_initial)];
+        W=[W zeros(size(W,1),2*(M-M_initial))];
+        for cc=1:M-M_initial
+            W[P+M_initial+cc,Q_initial+cc]=1;
+            W[P+2*M+M_initial+cc,Q_initial+M-M_initial+cc]=1;
+        end
+        @assert norm(W'*W-I(Q))<1e-12;
+    end
+
 end
 
 if boundary_x==1
