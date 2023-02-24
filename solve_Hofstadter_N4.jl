@@ -10,30 +10,32 @@ include("cost_function.jl")
 
 
 #Hamiltonian parameters
-Random.seed!(555)
+Random.seed!(777)
 Lx=80;
 Ly=6;
 N=Lx*Ly;
 boundary_phase_x=0;#between 0 and 1
-boundary_phase_y=0;#between 0 and 1
-Mz=1;
+boundary_phase_y=0.5;#between 0 and 1
+tx=1;
+ty=0.6;
+t2=0.3;
 
 #PEPS parameters
-filling=1;
-P=2;#number of physical fermion modes every unit-cell
-M=1;#number of virtual modes per bond
-M_initial=1;#number of virtual modes in initial state
+filling=2;
+P=4;#number of physical fermion modes every unit-cell
+M=2;#number of virtual modes per bond
+M_initial=2;#number of virtual modes in initial state
 #each site has 4M virtual fermion modes
 Q=2*M+filling;#total number of physical and virtual fermions on a site;
 #size of W matrix: (P+4M, Q)
-#init_state="QWZ_M"*string(M_initial)*".jld";#initialize: nothing
+#init_state="Hofstadter_N4_fil"*string(filling)*"_M"*string(M_initial)*".jld";#initialize: nothing
 init_state=nothing
 
 #optimization parameters
 ls_max=20;
 alpha0=2;
 ls_ratio=2/3;
-noise_ite=1;
+noise_ite=3;
 
 function initial_W(P,M,Q)
     W=rand(P+4*M,P+4*M)+im*rand(P+4*M,P+4*M);
@@ -78,8 +80,21 @@ for ca=1:Lx
     end
 end
 
+#define matrices
+hh11=zeros(4,4)*im;hh11[1,1]=1;
+hh22=zeros(4,4)*im;hh22[2,2]=1;
+hh33=zeros(4,4)*im;hh33[3,3]=1;
+hh44=zeros(4,4)*im;hh44[4,4]=1;
+hh12=zeros(4,4)*im;hh12[1,2]=1;
+hh14=zeros(4,4)*im;hh14[1,4]=1;
+hh21=zeros(4,4)*im;hh21[2,1]=1;
+hh23=zeros(4,4)*im;hh23[2,3]=1;
+hh32=zeros(4,4)*im;hh32[3,2]=1;
+hh34=zeros(4,4)*im;hh34[3,4]=1;
+hh41=zeros(4,4)*im;hh41[4,1]=1;
+hh43=zeros(4,4)*im;hh43[4,3]=1;
 
-cost_f(W)=Qi_Wu_Zhang(Mz,Lx,Ly,P,M,kxs,kys,W);
+cost_f(W)=Hofstadter_N4(tx,ty,t2,Lx,Ly,P,M,Q,kxs,kys,W,hh11,hh22,hh33,hh44,hh12,hh14,hh21,hh23,hh32,hh34,hh41,hh43);
 
 
 function line_search(W,noise)
@@ -213,10 +228,10 @@ end
 println(E0)
 
 
-jld_filenm="QWZ_M"*string(M)*".jld";
+jld_filenm="Hofstadter_N4_fil"*string(filling)*"_M"*string(M)*".jld";
 save(jld_filenm, "W",W,"E0",E0);
 
-mat_filenm="QWZ_M"*string(M)*".mat";
+mat_filenm="Hofstadter_N4_fil"*string(filling)*"_M"*string(M)*".mat";
 matwrite(mat_filenm, Dict(
     "W" => W,
     "E0" => E0

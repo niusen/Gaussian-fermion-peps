@@ -10,24 +10,25 @@ include("cost_function.jl")
 
 
 #Hamiltonian parameters
-Random.seed!(555)
-Lx=80;
-Ly=6;
+Random.seed!(444)
+Lx=16;
+Ly=16;
 N=Lx*Ly;
-boundary_phase_x=0;#between 0 and 1
-boundary_phase_y=0;#between 0 and 1
+boundary_x=1;#1 or -1
+boundary_y=1;#1 or -1
+R=0;
 Mz=1;
 
 #PEPS parameters
 filling=1;
 P=2;#number of physical fermion modes every unit-cell
-M=1;#number of virtual modes per bond
-M_initial=1;#number of virtual modes in initial state
+M=4;#number of virtual modes per bond
+M_initial=3;#number of virtual modes in initial state
 #each site has 4M virtual fermion modes
-Q=2*M+filling;#total number of physical and virtual fermions on a site;
+Q=2*M+filling;#total number of physical and virtual fermions on a site; 
 #size of W matrix: (P+4M, Q)
-#init_state="QWZ_M"*string(M_initial)*".jld";#initialize: nothing
-init_state=nothing
+init_state="C2_model2_M"*string(M_initial)*".jld";#initialize: nothing
+#init_state=nothing
 
 #optimization parameters
 ls_max=20;
@@ -41,7 +42,7 @@ function initial_W(P,M,Q)
     W=U[:,1:Q];
 end
 
-if init_state==nothing
+if init_state==nothing 
     W=initial_W(P,M,Q);
 else
     if M_initial==M
@@ -62,9 +63,16 @@ else
 
 end
 
-kxs=Float64.(1:1:Lx)*(2*pi)/Lx.+boundary_phase_x*2*pi/Lx;
-kys=Float64.(1:1:Ly)*(2*pi)/Ly.+boundary_phase_y*2*pi/Ly;
-
+if boundary_x==1
+    kxs=Float64.(1:1:Lx)*(2*pi)/Lx;
+elseif boundary_x==-1
+    kxs=Float64.(1:1:Lx)*(2*pi)/Lx.+pi/Lx;
+end
+if boundary_y==1
+    kys=Float64.(1:1:Ly)*(2*pi)/Ly;
+elseif boundary_y==-1
+    kys=Float64.(1:1:Ly)*(2*pi)/Ly.+pi/Ly;
+end
 
 kxset=zeros(Lx,Ly);
 kyset=zeros(Lx,Ly);
@@ -79,7 +87,7 @@ for ca=1:Lx
 end
 
 
-cost_f(W)=Qi_Wu_Zhang(Mz,Lx,Ly,P,M,kxs,kys,W);
+cost_f(W)=C2_model2(R,Mz,Lx,Ly,P,M,kxs,kys,W);
 
 
 function line_search(W,noise)
@@ -102,7 +110,7 @@ function line_search(W,noise)
         Q_G=g*W'-W*g';
         improved=false;
         improvement=0;
-
+    
         #conjugate gradient opt
         norm_grad=norm(Q_G)
         norm_grad0=norm(Q_G_old)
@@ -112,11 +120,11 @@ function line_search(W,noise)
         else
             direction=Q_G+beta*direction_old;
         end
-        for ls_step=0:ls_max-1
+        for ls_step=0:ls_max-1  
             alpha=alpha0*(ls_ratio^ls_step);
             W_new=exp(-alpha*direction)*W;
             E=cost_f(W_new);
-
+            
             println("   Conjugate gradient opt, LS="*string(ls_step+1)*", "*"E="*string(E));flush(stdout);
             improvement=E-E0;
             if E<E0
@@ -131,11 +139,11 @@ function line_search(W,noise)
         if improved
         else
             #gradient opt
-            for ls_step=0:ls_max-1
+            for ls_step=0:ls_max-1    
                 alpha=alpha0*(ls_ratio^ls_step);
                 W_new=exp(-alpha*Q_G)*W;
                 E=cost_f(W_new);
-
+                
                 println("   Gradient opt, LS="*string(ls_step+1)*", "*"E="*string(E));flush(stdout);
                 improvement=E-E0;
                 if E<E0
@@ -213,11 +221,13 @@ end
 println(E0)
 
 
-jld_filenm="QWZ_M"*string(M)*".jld";
+jld_filenm="C2_model2_M"*string(M)*".jld";
 save(jld_filenm, "W",W,"E0",E0);
 
-mat_filenm="QWZ_M"*string(M)*".mat";
+mat_filenm="C2_model2_M"*string(M)*".mat";
 matwrite(mat_filenm, Dict(
     "W" => W,
     "E0" => E0
 ); compress = false)
+
+

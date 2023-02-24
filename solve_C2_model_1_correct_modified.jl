@@ -10,30 +10,33 @@ include("cost_function.jl")
 
 
 #Hamiltonian parameters
-Random.seed!(555)
+Random.seed!(444)
 Lx=80;
-Ly=6;
+Ly=4;
 N=Lx*Ly;
 boundary_phase_x=0;#between 0 and 1
 boundary_phase_y=0;#between 0 and 1
-Mz=1;
+
+Phx=0.1;#cos(2ky) perturbation on hx term
+Phz=0;#cos(2ky) perturbation on hz term
+Delta=1/sqrt(2);
 
 #PEPS parameters
 filling=1;
 P=2;#number of physical fermion modes every unit-cell
-M=1;#number of virtual modes per bond
-M_initial=1;#number of virtual modes in initial state
+M=2;#number of virtual modes per bond
+M_initial=2;#number of virtual modes in initial state
 #each site has 4M virtual fermion modes
 Q=2*M+filling;#total number of physical and virtual fermions on a site;
 #size of W matrix: (P+4M, Q)
-#init_state="QWZ_M"*string(M_initial)*".jld";#initialize: nothing
+#init_state="C2_model1_correct_M"*string(M_initial)*".jld";#initialize: nothing
 init_state=nothing
 
 #optimization parameters
 ls_max=20;
 alpha0=2;
 ls_ratio=2/3;
-noise_ite=1;
+noise_ite=3;
 
 function initial_W(P,M,Q)
     W=rand(P+4*M,P+4*M)+im*rand(P+4*M,P+4*M);
@@ -62,6 +65,7 @@ else
 
 end
 
+
 kxs=Float64.(1:1:Lx)*(2*pi)/Lx.+boundary_phase_x*2*pi/Lx;
 kys=Float64.(1:1:Ly)*(2*pi)/Ly.+boundary_phase_y*2*pi/Ly;
 
@@ -79,7 +83,7 @@ for ca=1:Lx
 end
 
 
-cost_f(W)=Qi_Wu_Zhang(Mz,Lx,Ly,P,M,kxs,kys,W);
+cost_f(W)=C2_model1_correct_modified(Phx,Phz,Delta,Lx,Ly,P,M,kxs,kys,W);
 
 
 function line_search(W,noise)
@@ -213,10 +217,10 @@ end
 println(E0)
 
 
-jld_filenm="QWZ_M"*string(M)*".jld";
+jld_filenm="C2_model1_correct_modified_M"*string(M)*".jld";
 save(jld_filenm, "W",W,"E0",E0);
 
-mat_filenm="QWZ_M"*string(M)*".mat";
+mat_filenm="C2_model1_correct_modified_M"*string(M)*".mat";
 matwrite(mat_filenm, Dict(
     "W" => W,
     "E0" => E0
