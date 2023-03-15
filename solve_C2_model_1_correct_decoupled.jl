@@ -17,8 +17,6 @@ N=Lx*Ly;
 boundary_phase_x=0;#between 0 and 1
 boundary_phase_y=0.5;#between 0 and 1
 
-Phx=0.3;#cos(2ky) perturbation on hx term
-Phz=0;#cos(2ky) perturbation on hz term
 Delta=1/sqrt(2);
 
 #PEPS parameters
@@ -29,7 +27,7 @@ M_initial=2;#number of virtual modes in initial state
 #each site has 4M virtual fermion modes
 Q=2*M+filling;#total number of physical and virtual fermions on a site;
 #size of W matrix: (P+4M, Q)
-#init_state="C2_model1_correct_M"*string(M_initial)*".jld";#initialize: nothing
+#init_state="C2_model1_correct_decoupled_M"*string(M_initial)*".jld";#initialize: nothing
 init_state=nothing
 
 #optimization parameters
@@ -83,7 +81,7 @@ for ca=1:Lx
 end
 
 
-cost_f(W)=C2_model1_correct_modified(Phx,Phz,Delta,Lx,Ly,P,M,kxs,kys,W);
+cost_f(W)=C2_model1_correct_decoupled(Delta,Lx,Ly,P,M,kxs,kys,W);
 
 
 function line_search(W,noise)
@@ -217,10 +215,10 @@ end
 println(E0)
 
 
-jld_filenm="C2_model1_correct_modified_M"*string(M)*".jld";
+jld_filenm="C2_model1_correct_decoupled_M"*string(M)*".jld";
 save(jld_filenm, "W",W,"E0",E0);
 
-mat_filenm="C2_model1_correct_modified_M"*string(M)*".mat";
+mat_filenm="C2_model1_correct_decoupled_M"*string(M)*".mat";
 matwrite(mat_filenm, Dict(
     "W" => W,
     "E0" => E0
