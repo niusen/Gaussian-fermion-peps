@@ -4,12 +4,11 @@ using JSON
 using HDF5, JLD2, MAT
 using Combinatorics
 
-cd("D:\\My Documents\\Code\\Julia_codes\\Tensor network\\GfPEPS_parton\\parton_ctmrg")
-
-include("mpo_mps_funs.jl");
+cd("D:\\My Documents\\Code\\Julia_codes\\Tensor network\\Gaussian-fermion-peps")
 
 
-theta=0;#in the unit of pi, acting on the decoupled two-layer state
+
+theta=0.15;#in the unit of pi, acting on the decoupled two-layer state
 
 
 
@@ -31,8 +30,11 @@ init_state="C2_model1_correct_decoupled_M"*string(M)*".jld";#initialize: nothing
 W=load(init_state)["W"];
 E0=load(init_state)["E0"];
 
+UU=Matrix(I, size(W)[1], size(W)[1])*(1.000+0*im);
+U_theta=[cos(theta/2*pi) -sin(theta/2*pi);sin(theta/2*pi) cos(theta/2*pi)]*(1+0*im);
+UU[1:2,1:2]=U_theta;
 
-W
+W=UU*W;
 
 
 
