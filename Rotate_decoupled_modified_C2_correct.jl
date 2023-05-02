@@ -8,7 +8,7 @@ cd("D:\\My Documents\\Code\\Julia_codes\\Tensor network\\Gaussian-fermion-peps")
 
 
 
-theta=0.25;#in the unit of pi, acting on the decoupled two-layer state
+theta=0.225;#in the unit of pi, acting on the decoupled two-layer state
 
 
 
@@ -23,7 +23,7 @@ Q=2*M+filling;#total number of physical and virtual fermions on a site;
 #init_state="Hofstadter_N2_M"*string(M)*".jld";#initialize: nothing
 #init_state="QWZ_M"*string(M)*".jld";#initialize: nothing
 #init_state="C2_model1_correct_M"*string(M)*".jld";#initialize: nothing
-init_state="C2_model1_correct_decoupled_M"*string(M)*".jld";#initialize: nothing
+init_state="C2_model1_correct_decoupled_modified_M"*string(M)*".jld";#initialize: nothing
 #init_state="C2_model1_incorrect_M"*string(M)*".jld";#initialize: nothing
 #init_state="C2_model1_correct_modified_M"*string(M)*".jld";#initialize: nothing
 
@@ -38,10 +38,10 @@ W=UU*W;
 
 
 
-jld_filenm="Rotate_decoupled_C2_theta_"*string(theta)*"_M"*string(M)*".jld";
+jld_filenm="Rotate_decoupled_modified_C2_theta_"*string(theta)*"_M"*string(M)*".jld";
 save(jld_filenm, "W",W,"E0",E0);
 
-mat_filenm="Rotate_decoupled_C2_theta_"*string(theta)*"_M"*string(M)*".mat";
+mat_filenm="Rotate_decoupled_modified_C2_theta_"*string(theta)*"_M"*string(M)*".mat";
 matwrite(mat_filenm, Dict(
     "W" => W,
     "E0" => E0
