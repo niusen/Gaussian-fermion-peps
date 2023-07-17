@@ -6,19 +6,19 @@ using Flux
 using MAT
 cd("D:\\My Documents\\Code\\Julia_codes\\Tensor network\\Gaussian-fermion-peps")
 
-include("cost_function.jl")
+include("cost_function_correlation.jl")
 
 
 #Hamiltonian parameters
 Random.seed!(777)
-Lx=80;
-Ly=80;
+Lx=20;
+Ly=20;
 N=Lx*Ly;
 boundary_phase_x=0;#between 0 and 1
 boundary_phase_y=0;#between 0 and 1
 tx=1;
 ty=1;
-t2=0.2;
+t2=0.125;
 
 #PEPS parameters
 filling=1;
@@ -35,7 +35,7 @@ init_state=nothing
 ls_max=20;
 alpha0=2;
 ls_ratio=1/2;
-noise_ite=3;
+noise_ite=1;
 
 function initial_W(P,M,Q)
     W=rand(P+4*M,P+4*M)+im*rand(P+4*M,P+4*M);
@@ -80,8 +80,134 @@ for ca=1:Lx
     end
 end
 
+#############################################
+#compute exact correlation functions
 
-cost_f(W)=Hofstadter_N2(tx,ty,t2,Lx,Ly,P,M,kxs,kys,W);
+sigmax=[0 1;1 0];
+sigmay=[0 -im;im 0];
+sigmaz=[1 0;0 -1];
+
+#x direction correlations
+ob_uu_exact=zeros(1,Lx)*(1+0*im);
+ob_dd_exact=zeros(1,Lx)*(1+0*im);
+ob_ud_exact=zeros(1,Lx)*(1+0*im);
+ob_du_exact=zeros(1,Lx)*(1+0*im);
+
+for ca=1:Lx
+    for cb=1:Ly
+
+        kx=kxs[ca];
+        ky=kys[cb];
+
+
+        
+        hx=-tx*(1+cos(kx))-2*t2*sin(ky)*(1-cos(kx));
+        hy=-tx*sin(kx)+2*t2*sin(ky)*sin(kx);
+        hz=2*ty*cos(ky);
+        
+        hk=hx*sigmax+hy*sigmay+hz*sigmaz;
+        eu,ev=eigen(hk);
+
+        @assert eu[1]<eu[2];
+        psi=ev[:,1];
+        ob_uu_exact[ca]=ob_uu_exact[ca]+psi[1]'*psi[1]/Ly;
+        ob_dd_exact[ca]=ob_dd_exact[ca]+psi[2]'*psi[2]/Ly;
+        ob_ud_exact[ca]=ob_ud_exact[ca]+psi[1]'*psi[2]/Ly;
+        ob_du_exact[ca]=ob_du_exact[ca]+psi[2]'*psi[1]/Ly;
+    end
+end
+
+
+correl_uu_exact_right=zeros(1,Lx)*(1+0*im);
+correl_dd_exact_right=zeros(1,Lx)*(1+0*im);
+correl_ud_exact_right=zeros(1,Lx)*(1+0*im);
+correl_du_exact_right=zeros(1,Lx)*(1+0*im);
+
+correl_uu_exact_left=zeros(1,Lx)*(1+0*im);
+correl_dd_exact_left=zeros(1,Lx)*(1+0*im);
+correl_ud_exact_left=zeros(1,Lx)*(1+0*im);
+correl_du_exact_left=zeros(1,Lx)*(1+0*im);
+
+for cxa=1:Lx
+    for cka=1:Lx
+        correl_uu_exact_right[cxa]=correl_uu_exact_right[cxa]+exp(im*(cxa-1)*kxs[cka])*ob_uu_exact[cka]/Lx;
+        correl_dd_exact_right[cxa]=correl_dd_exact_right[cxa]+exp(im*(cxa-1)*kxs[cka])*ob_dd_exact[cka]/Lx;
+        correl_ud_exact_right[cxa]=correl_ud_exact_right[cxa]+exp(im*(cxa-1)*kxs[cka])*ob_ud_exact[cka]/Lx;
+        correl_du_exact_right[cxa]=correl_du_exact_right[cxa]+exp(im*(cxa-1)*kxs[cka])*ob_du_exact[cka]/Lx;
+
+        correl_uu_exact_left[cxa]=correl_uu_exact_left[cxa]+exp(-im*(cxa-1)*kxs[cka])*ob_uu_exact[cka]/Lx;
+        correl_dd_exact_left[cxa]=correl_dd_exact_left[cxa]+exp(-im*(cxa-1)*kxs[cka])*ob_dd_exact[cka]/Lx;
+        correl_ud_exact_left[cxa]=correl_ud_exact_left[cxa]+exp(-im*(cxa-1)*kxs[cka])*ob_ud_exact[cka]/Lx;
+        correl_du_exact_left[cxa]=correl_du_exact_left[cxa]+exp(-im*(cxa-1)*kxs[cka])*ob_du_exact[cka]/Lx;
+    end
+end
+
+
+######
+
+#y direction correlations
+ob_uu_exact=zeros(1,Ly)*(1+0*im);
+ob_dd_exact=zeros(1,Ly)*(1+0*im);
+ob_ud_exact=zeros(1,Ly)*(1+0*im);
+ob_du_exact=zeros(1,Ly)*(1+0*im);
+
+for cb=1:Ly
+    for ca=1:Lx
+    
+        kx=kxs[ca];
+        ky=kys[cb];
+
+
+        
+        hx=-tx*(1+cos(kx))-2*t2*sin(ky)*(1-cos(kx));
+        hy=-tx*sin(kx)+2*t2*sin(ky)*sin(kx);
+        hz=2*ty*cos(ky);
+        
+        hk=hx*sigmax+hy*sigmay+hz*sigmaz;
+        eu,ev=eigen(hk);
+
+        @assert eu[1]<eu[2];
+        psi=ev[:,1];
+        ob_uu_exact[cb]=ob_uu_exact[cb]+psi[1]'*psi[1]/Lx;
+        ob_dd_exact[cb]=ob_dd_exact[cb]+psi[2]'*psi[2]/Lx;
+        ob_ud_exact[cb]=ob_ud_exact[cb]+psi[1]'*psi[2]/Lx;
+        ob_du_exact[cb]=ob_du_exact[cb]+psi[2]'*psi[1]/Lx;
+    end
+end
+
+
+correl_uu_exact_up=zeros(1,Ly)*(1+0*im);
+correl_dd_exact_up=zeros(1,Ly)*(1+0*im);
+#correl_ud_exact_up=zeros(1,Ly)*(1+0*im);
+#correl_du_exact_up=zeros(1,Ly)*(1+0*im);
+
+correl_uu_exact_down=zeros(1,Ly)*(1+0*im);
+correl_dd_exact_down=zeros(1,Ly)*(1+0*im);
+#correl_ud_exact_down=zeros(1,Ly)*(1+0*im);
+#correl_du_exact_down=zeros(1,Ly)*(1+0*im);
+
+for cya=1:Ly
+    for ckb=1:Ly
+        correl_uu_exact_up[cya]=correl_uu_exact_up[cya]+exp(im*(cya-1)*kys[ckb])*ob_uu_exact[ckb]/Ly;
+        correl_dd_exact_up[cya]=correl_dd_exact_up[cya]+exp(im*(cya-1)*kys[ckb])*ob_dd_exact[ckb]/Ly;
+        #correl_ud_exact_up[cya]=correl_ud_exact_up[cya]+exp(im*(cya-1)*kys[ckb])*ob_ud_exact[ckb]/Ly;
+        #correl_du_exact_up[cya]=correl_du_exact_up[cya]+exp(im*(cya-1)*kys[ckb])*ob_du_exact[ckb]/Ly;
+
+        correl_uu_exact_down[cya]=correl_uu_exact_down[cya]+exp(-im*(cya-1)*kys[ckb])*ob_uu_exact[ckb]/Ly;
+        correl_dd_exact_down[cya]=correl_dd_exact_down[cya]+exp(-im*(cya-1)*kys[ckb])*ob_dd_exact[ckb]/Ly;
+        #correl_ud_exact_down[cya]=correl_ud_exact_down[cya]+exp(-im*(cya-1)*kys[ckb])*ob_ud_exact[ckb]/Ly;
+        #correl_du_exact_down[cya]=correl_du_exact_down[cya]+exp(-im*(cya-1)*kys[ckb])*ob_du_exact[ckb]/Ly;
+    end
+end
+###############################
+correl_x=[correl_uu_exact_left,correl_ud_exact_left,correl_du_exact_left,correl_dd_exact_left,  correl_uu_exact_right,correl_ud_exact_right,correl_du_exact_right,correl_dd_exact_right];
+correl_y=[correl_uu_exact_up,correl_dd_exact_up,  correl_uu_exact_down,correl_dd_exact_down];
+###############################
+
+
+correl_distance=5;
+#cost_f(W)=Hofstadter_N2(tx,ty,t2,Lx,Ly,P,M,kxs,kys,W);
+cost_f(W)=Hofstadter_N2_correlation(tx,ty,t2,Lx,Ly,P,M,kxs,kys,W,correl_x,correl_y,correl_distance);
 
 
 function line_search(W,noise)

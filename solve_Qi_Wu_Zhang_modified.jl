@@ -12,16 +12,21 @@ include("cost_function.jl")
 #Hamiltonian parameters
 Random.seed!(555)
 Lx=80;
-Ly=6;
+Ly=4;
 N=Lx*Ly;
 boundary_phase_x=0;#between 0 and 1
-boundary_phase_y=0.;#between 0 and 1
+boundary_phase_y=0;#between 0 and 1
+ta=0.5;
+tb=1;
+tc=1;
+td=1;
+
 Mz=1;
 
 #PEPS parameters
 filling=1;
 P=2;#number of physical fermion modes every unit-cell
-M=1;#number of virtual modes per bond
+M=2;#number of virtual modes per bond
 M_initial=1;#number of virtual modes in initial state
 #each site has 4M virtual fermion modes
 Q=2*M+filling;#total number of physical and virtual fermions on a site;
@@ -79,7 +84,7 @@ for ca=1:Lx
 end
 
 
-cost_f(W)=Qi_Wu_Zhang(Mz,Lx,Ly,P,M,kxs,kys,W);
+cost_f(W)=Qi_Wu_Zhang_modified(ta,tb,tc,td,Mz,Lx,Ly,P,M,kxs,kys,W);
 
 
 function line_search(W,noise)
